@@ -1,4 +1,4 @@
-package br.com.api.modavintage.Controller;
+package br.com.api.modavintage.Controller; // Seu pacote
 
 import br.com.api.modavintage.Model.Fornecedor;
 import br.com.api.modavintage.Service.FornecedorService;
@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/fornecedores")
+@RequestMapping("/fornecedores") // Ou "/api/fornecedores"
 public class FornecedorController {
 
     @Autowired
@@ -22,12 +22,18 @@ public class FornecedorController {
         return ResponseEntity.status(HttpStatus.CREATED).body(fornecedorSalvo);
     }
 
+    // Endpoint GET /fornecedores atualizado para aceitar o parâmetro 'nome'
     @GetMapping
-    public ResponseEntity<List<Fornecedor>> listarFornecedores() {
-        return ResponseEntity.ok(fornecedorService.listarFornecedores());
+    public ResponseEntity<List<Fornecedor>> listarFornecedores(
+            @RequestParam(required = false) String nome // Parâmetro de query opcional
+    ) {
+        List<Fornecedor> fornecedores = fornecedorService.listarFornecedores(nome);
+        if (fornecedores.isEmpty()) {
+            return ResponseEntity.noContent().build(); // 204 se a lista estiver vazia
+        }
+        return ResponseEntity.ok(fornecedores);
     }
 
-    // Novo endpoint
     @GetMapping("/{id}")
     public ResponseEntity<Fornecedor> buscarFornecedorPorId(@PathVariable Long id) {
         return fornecedorService.buscarPorId(id)
@@ -35,7 +41,6 @@ public class FornecedorController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // Novo endpoint
     @PutMapping("/{id}")
     public ResponseEntity<?> atualizarFornecedor(@PathVariable Long id, @RequestBody Fornecedor fornecedorDetalhes) {
         try {
@@ -46,14 +51,13 @@ public class FornecedorController {
         }
     }
 
-    // Novo endpoint
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletarFornecedor(@PathVariable Long id) {
         try {
             fornecedorService.deletarFornecedor(id);
             return ResponseEntity.noContent().build();
         } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }
 }
