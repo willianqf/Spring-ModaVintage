@@ -1,14 +1,16 @@
-package br.com.api.modavintage.Repository; // 
+package br.com.api.modavintage.Repository; // Seu pacote
 
 import br.com.api.modavintage.Model.Cliente;
+import org.springframework.data.domain.Page; // Importar Page
+import org.springframework.data.domain.Pageable; // Importar Pageable
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository; // 
+import org.springframework.stereotype.Repository;
 
-import java.util.List; // Importar List
-
-@Repository // Adicionar @Repository se ainda não tiver
+@Repository
 public interface ClienteRepository extends JpaRepository<Cliente, Long> {
 
-    // Novo método para buscar clientes por nome contendo o termo
-    List<Cliente> findByNomeContainingIgnoreCase(String nome);
+    // Método de pesquisa por nome agora retorna Page<Cliente> e aceita Pageable
+    Page<Cliente> findByNomeContainingIgnoreCase(String nome, Pageable pageable);
+
+    // O JpaRepository já fornece findAll(Pageable pageable) que retorna Page<Cliente>
 }

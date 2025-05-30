@@ -1,13 +1,15 @@
-package br.com.api.modavintage.Service; 
+package br.com.api.modavintage.Service; // Seu pacote
 
 import br.com.api.modavintage.Model.Fornecedor;
 import br.com.api.modavintage.Repository.FornecedorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page; // Importar Page
+import org.springframework.data.domain.Pageable; // Importar Pageable
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils; // Para verificar strings
+import org.springframework.util.StringUtils;
 
-import java.util.List;
+// Removido import de java.util.List se não for mais usado aqui
 import java.util.Optional;
 
 @Service
@@ -17,19 +19,20 @@ public class FornecedorService {
     private FornecedorRepository fornecedorRepository;
 
     public Fornecedor salvarFornecedor(Fornecedor fornecedor) {
-        // Adicione validações aqui se necessário (ex: CNPJ único)
         return fornecedorRepository.save(fornecedor);
     }
 
-    // Método listarFornecedores atualizado para aceitar um nome para pesquisa
-    public List<Fornecedor> listarFornecedores(String nomePesquisa) {
+    // Método listarFornecedores atualizado para aceitar Pageable e retornar Page<Fornecedor>
+    @Transactional(readOnly = true)
+    public Page<Fornecedor> listarFornecedores(String nomePesquisa, Pageable pageable) {
         if (StringUtils.hasText(nomePesquisa)) {
-            return fornecedorRepository.findByNomeContainingIgnoreCase(nomePesquisa);
+            return fornecedorRepository.findByNomeContainingIgnoreCase(nomePesquisa, pageable);
         } else {
-            return fornecedorRepository.findAll();
+            return fornecedorRepository.findAll(pageable);
         }
     }
 
+    @Transactional(readOnly = true)
     public Optional<Fornecedor> buscarPorId(Long id) {
         return fornecedorRepository.findById(id);
     }

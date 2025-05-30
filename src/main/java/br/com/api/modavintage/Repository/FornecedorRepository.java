@@ -1,14 +1,16 @@
 package br.com.api.modavintage.Repository; // Seu pacote
 
 import br.com.api.modavintage.Model.Fornecedor;
+import org.springframework.data.domain.Page; // Importar Page
+import org.springframework.data.domain.Pageable; // Importar Pageable
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository; // Adicionar se não tiver
+import org.springframework.stereotype.Repository;
 
-import java.util.List; // Importar List
+// Removido import de java.util.List se não for mais usado aqui
 
-@Repository // Adicionar @Repository se ainda não tiver
+@Repository
 public interface FornecedorRepository extends JpaRepository<Fornecedor, Long> {
 
-    // Novo método para buscar fornecedores por nome contendo o termo, ignorando caso
-    List<Fornecedor> findByNomeContainingIgnoreCase(String nome);
+    // Método de pesquisa por nome agora retorna Page<Fornecedor> e aceita Pageable
+    Page<Fornecedor> findByNomeContainingIgnoreCase(String nome, Pageable pageable);
 }
