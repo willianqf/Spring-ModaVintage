@@ -103,7 +103,6 @@ public class configuracao implements CommandLineRunner {
                 Random random = new Random();
                 String nome = nomeProduto[random.nextInt(nomeProduto.length)] + " " + tipoProduto[random.nextInt(tipoProduto.length)] + " " + tamanhoProduto[random.nextInt(tamanhoProduto.length)] + " " + x;
                 Produto p1 = new Produto();
-                System.out.printf(nome);
                 p1.setNome(nome);
                 p1.setPreco(59.90);
                 p1.setEstoque(10);
