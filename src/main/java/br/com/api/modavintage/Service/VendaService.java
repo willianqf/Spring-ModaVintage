@@ -1,6 +1,5 @@
 package br.com.api.modavintage.Service;
 
-
 import br.com.api.modavintage.Model.Cliente;
 import br.com.api.modavintage.Model.ItemVenda;
 import br.com.api.modavintage.Model.Produto;
@@ -8,16 +7,19 @@ import br.com.api.modavintage.Model.Venda;
 import br.com.api.modavintage.Repository.ClienteRepository;
 import br.com.api.modavintage.Repository.ProdutoRepository;
 import br.com.api.modavintage.Repository.VendaRepository;
+import br.com.api.modavintage.dto.VendasPorMesDTO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page; // Importar Page
+import org.springframework.data.domain.Pageable; // Importar Pageable
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
-import br.com.api.modavintage.dto.VendasPorMesDTO; // Importar DTO
-import java.util.stream.Collectors; // Se precisar de mapeamento para nativeQuery
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class VendaService {
@@ -28,7 +30,7 @@ public class VendaService {
     @Autowired
     private ProdutoRepository produtoRepository;
 
-    @Autowired(required = false) // Opcional, se nem toda venda tiver cliente
+    @Autowired(required = false)
     private ClienteRepository clienteRepository;
 
     @Transactional
@@ -40,18 +42,22 @@ public class VendaService {
         Venda novaVenda = new Venda();
         novaVenda.setDataVenda(new Date());
 
-        // Lidar com o cliente (se houver)
         if (vendaRequest.getCliente() != null && vendaRequest.getCliente().getId() != null) {
             Cliente cliente = clienteRepository.findById(vendaRequest.getCliente().getId())
                     .orElseThrow(() -> new RuntimeException("Cliente com ID " + vendaRequest.getCliente().getId() + " não encontrado."));
             novaVenda.setCliente(cliente);
-        } else if (vendaRequest.getCliente() != null && vendaRequest.getCliente().getId() == null) {
-
-             throw new IllegalArgumentException("Cliente informado sem ID. Cadastre o cliente primeiro ou forneça um ID válido.");
+        } else if (vendaRequest.getCliente() != null && vendaRequest.getCliente().getId() == null && StringUtils.hasText(vendaRequest.getCliente().getNome())) {
+             // Lógica para tentar encontrar ou criar cliente se apenas o nome for enviado (mais complexo)
+             // Por agora, vamos assumir que se um cliente é enviado, ele tem ID ou é nulo.
+             // Ou, se o ID é nulo mas outros dados do cliente são enviados, você poderia tentar salvar um novo cliente:
+             // Cliente novoCliente = clienteRepository.save(vendaRequest.getCliente());
+             // novaVenda.setCliente(novoCliente);
+             // Para simplificar, manteremos a lógica de exigir ID se o objeto cliente for enviado.
         }
 
 
         double totalCalculado = 0.0;
+        List<ItemVenda> itensProcessados = new ArrayList<>();
 
         for (ItemVenda itemRequest : vendaRequest.getItens()) {
             if (itemRequest.getProduto() == null || itemRequest.getProduto().getId() == null) {
@@ -70,70 +76,73 @@ public class VendaService {
                                                 ", Solicitado: " + itemRequest.getQuantidadeVendida());
             }
 
-            // Atualiza o estoque do produto
             produtoEmEstoque.setEstoque(produtoEmEstoque.getEstoque() - itemRequest.getQuantidadeVendida());
             produtoRepository.save(produtoEmEstoque);
 
-            // Cria o ItemVenda gerenciado
             ItemVenda itemVendaReal = new ItemVenda();
             itemVendaReal.setProduto(produtoEmEstoque);
             itemVendaReal.setQuantidadeVendida(itemRequest.getQuantidadeVendida());
-            itemVendaReal.setPrecoUnitario(produtoEmEstoque.getPreco()); // Preço atual do produto
-            itemVendaReal.setVenda(novaVenda); // Associa o item à nova venda
-
-            novaVenda.getItens().add(itemVendaReal); // Adiciona o item à lista da venda
+            itemVendaReal.setPrecoUnitario(produtoEmEstoque.getPreco());
+            // A associação bidirecional Venda <-> ItemVenda será gerenciada pelo JPA ao salvar Venda
+            // devido ao cascade e mappedBy. O importante é adicionar o item à lista da venda.
+            // itemVendaReal.setVenda(novaVenda); // Isso será feito pelo JPA ou pode ser feito manualmente se necessário antes do save.
+                                               // Para cascade, adicionar à coleção do lado "pai" é o principal.
+            itensProcessados.add(itemVendaReal);
             totalCalculado += itemVendaReal.getPrecoUnitario() * itemVendaReal.getQuantidadeVendida();
+        }
+        
+        novaVenda.setItens(itensProcessados); // Define a lista de itens processados
+        // É importante que a relação Venda -> ItemVenda seja o lado "dono" (com JoinColumn em ItemVenda.venda)
+        // e que ItemVenda.venda seja preenchido para que o mappedBy funcione.
+        // Ao usar CascadeType.ALL, o save da Venda persistirá os ItemVenda.
+        // Precisamos garantir que cada ItemVenda tenha a referência para novaVenda.
+        for(ItemVenda item : itensProcessados) {
+            item.setVenda(novaVenda);
         }
 
         novaVenda.setTotalVenda(totalCalculado);
         return vendaRepository.save(novaVenda);
     }
 
-    public List<Venda> listarVendas() {
-
-        return vendaRepository.findAll();
+    @Transactional(readOnly = true)
+    public Page<Venda> listarVendas(Pageable pageable) { // Modificado para paginação
+        return vendaRepository.findAll(pageable);
     }
 
+    @Transactional(readOnly = true)
     public Optional<Venda> buscarPorId(Long id) {
-        // Similar a listarVendas, buscarPorId pode precisar de EntityGraph para carregar itens e cliente
-        // de forma otimizada se eles forem LAZY.
-        return vendaRepository.findById(id);
+        // Para evitar problemas com LazyInitializationException ao serializar,
+        // pode ser necessário inicializar as coleções aqui se não estiver usando DTOs.
+        Optional<Venda> vendaOpt = vendaRepository.findById(id);
+        vendaOpt.ifPresent(venda -> {
+            if (venda.getCliente() != null) venda.getCliente().getNome(); // Força inicialização
+            venda.getItens().size(); // Força inicialização da lista de itens
+            for (ItemVenda item : venda.getItens()) {
+                if (item.getProduto() != null) item.getProduto().getNome(); // Força inicialização do produto no item
+            }
+        });
+        return vendaOpt;
     }
 
     @Transactional
     public void deletarVenda(Long id) {
         Venda venda = vendaRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Venda com ID " + id + " não encontrada."));
-
-        // Estornar o estoque dos produtos ao deletar a venda
-        // for (ItemVenda item : venda.getItens()) {
-        //     Produto produto = item.getProduto();
-        //     produto.setEstoque(produto.getEstoque() + item.getQuantidadeVendida());
-        //     produtoRepository.save(produto);
-        // }
-        vendaRepository.delete(venda); // CascadeType.ALL em Venda.itens deve remover os ItemVenda associados
+        // Opcional: Estornar estoque (ainda não implementado)
+        vendaRepository.delete(venda);
     }
 
-    // Se precisar de busca de vendas por período ou cliente, adicione os métodos aqui
-    // public List<Venda> buscarVendasPorCliente(Long clienteId) { ... }
-    //  public List<Venda> buscarVendasPorData(Date inicio, Date fim) { ... }
-
- @Transactional(readOnly = true)
+    @Transactional(readOnly = true)
     public List<VendasPorMesDTO> getRelatorioVendasMensal() {
         List<Object[]> resultados = vendaRepository.findTotalVendasPorMesRaw();
         if (resultados == null) {
-            return new ArrayList<>(); // Retorna lista vazia se não houver resultados
+            return new ArrayList<>();
         }
         return resultados.stream()
                 .map(record -> {
                     Integer ano = (Integer) record[0];
                     Integer mes = (Integer) record[1];
-                    // O SUM pode retornar Long ou Double dependendo do dialeto e do tipo original
-                    // Se totalVenda é Double, SUM(totalVenda) geralmente é Double.
-                    // Se for Long, você precisaria converter para Double se o DTO espera Double.
-                    Double total = ((Number) record[2]).doubleValue(); // Casting seguro para Number e depois para double
-
-                    // Formata mesAno como "YYYY-MM"
+                    Double total = ((Number) record[2]).doubleValue();
                     String mesAno = String.format("%d-%02d", ano, mes);
                     return new VendasPorMesDTO(mesAno, total);
                 })

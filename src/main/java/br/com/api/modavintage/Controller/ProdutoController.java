@@ -1,18 +1,22 @@
-package br.com.api.modavintage.Controller; // Seu pacote
+package br.com.api.modavintage.Controller;
 
 import br.com.api.modavintage.Model.Produto;
 import br.com.api.modavintage.Service.ProdutoService;
 import br.com.api.modavintage.dto.RelatorioMensalValorDTO;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page; // Importar Page
-import org.springframework.data.domain.PageRequest; // Importar PageRequest
-import org.springframework.data.domain.Pageable; // Importar Pageable
-import org.springframework.data.domain.Sort; // Opcional: para ordenação
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/produtos")
@@ -21,42 +25,46 @@ public class ProdutoController {
     @Autowired
     private ProdutoService produtoService;
 
+    // ... (salvarProduto, listarProdutos - paginado, buscarProdutoPorId, etc. como antes) ...
+
     @PostMapping
     public ResponseEntity<Produto> salvarProduto(@RequestBody Produto produto) {
         Produto produtoSalvo = produtoService.salvarProduto(produto);
         return ResponseEntity.status(HttpStatus.CREATED).body(produtoSalvo);
     }
 
-    // Endpoint GET /produtos atualizado para aceitar parâmetros de paginação e pesquisa
-    @GetMapping
+    @GetMapping // Endpoint paginado
     public ResponseEntity<Page<Produto>> listarProdutos(
             @RequestParam(required = false) String nome,
-            @RequestParam(defaultValue = "0") int page,     // Número da página, padrão 0
-            @RequestParam(defaultValue = "10") int size,    // Tamanho da página, padrão 10
-            @RequestParam(defaultValue = "id,asc") String[] sort // Opcional: Parâmetros de ordenação, ex: "nome,asc" ou "id,desc"
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(name = "sortBy", defaultValue = "id") String sortBy,
+            @RequestParam(name = "sortDir", defaultValue = "asc") String sortDir
     ) {
-        // Criação do objeto Pageable com ordenação
-        // Exemplo: sort=nome,asc ou sort=id,desc (pode receber múltiplos sort=campo,direcao)
-        // Por simplicidade, vamos usar a ordenação padrão ou uma fixa se 'sort' não for robustamente tratado.
-        // Aqui, vamos usar a ordenação que vem do request ou uma padrão se não vier.
-        // String[] sortParams = sort.split(",");
-        // Sort.Direction direction = sortParams.length > 1 && sortParams[1].equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
-        // Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortParams[0]));
-        // Simplificando para ordenação por ID por enquanto:
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "id"));
-
-
-        Page<Produto> paginaProdutos = produtoService.listarProdutos(nome, pageable);
-
-        if (paginaProdutos.isEmpty()) {
-            return ResponseEntity.noContent().build(); // Retorna 204 se a página estiver vazia
+        Sort.Direction direction = Sort.Direction.ASC;
+        if (sortDir.equalsIgnoreCase("desc")) {
+            direction = Sort.Direction.DESC;
         }
+        String propertyToSortBy = StringUtils.hasText(sortBy) ? sortBy : "id";
+        Sort sortOrder = Sort.by(direction, propertyToSortBy);
+        
+        Pageable pageable = PageRequest.of(page, size, sortOrder);
+        Page<Produto> paginaProdutos = produtoService.listarProdutos(nome, pageable);
         return ResponseEntity.ok(paginaProdutos);
+    }
+
+    // NOVO ENDPOINT PARA LISTAR TODOS OS PRODUTOS
+    @GetMapping("/todos")
+    public ResponseEntity<List<Produto>> listarTodosOsProdutos() {
+        List<Produto> produtos = produtoService.listarTodosProdutos();
+        if (produtos.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(produtos);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Produto> buscarProdutoPorId(@PathVariable Long id) {
-        // ... (como antes) ...
         return produtoService.buscarPorId(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -64,18 +72,16 @@ public class ProdutoController {
 
     @PutMapping("/{id}")
     public ResponseEntity<?> atualizarProduto(@PathVariable Long id, @RequestBody Produto produtoDetalhes) {
-        // ... (como antes) ...
         try {
             Produto produtoAtualizado = produtoService.atualizarProduto(id, produtoDetalhes);
             return ResponseEntity.ok(produtoAtualizado);
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("erro", e.getMessage()));
         }
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletarProduto(@PathVariable Long id) {
-        // ... (como antes) ...
         try {
             produtoService.deletarProduto(id);
             return ResponseEntity.noContent().build();
@@ -84,19 +90,16 @@ public class ProdutoController {
         }
     }
 
-    // Endpoint de relatório (mantém como está)
+
     @GetMapping("/relatorio/valor-entrada-estoque-mensal")
     public ResponseEntity<List<RelatorioMensalValorDTO>> getRelatorioValorEntradaEstoque() {
         // ... (como antes) ...
         try {
             List<RelatorioMensalValorDTO> relatorio = produtoService.getRelatorioValorEntradaEstoqueMensal();
-            if (relatorio.isEmpty()) {
-                return ResponseEntity.noContent().build();
-            }
             return ResponseEntity.ok(relatorio);
         } catch (Exception e) {
             System.err.println("Erro ao gerar relatório de valor de entrada de estoque mensal: " + e.getMessage());
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 }

@@ -4,16 +4,19 @@ import br.com.api.modavintage.Model.Produto;
 import br.com.api.modavintage.Repository.ProdutoRepository;
 import br.com.api.modavintage.dto.RelatorioMensalValorDTO;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page; // Importar Page
-import org.springframework.data.domain.Pageable; // Importar Pageable
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort; // Importar Sort
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Date;
-import java.util.List; // Manter para getRelatorioValorEntradaEstoqueMensal
-import java.util.Optional;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -22,6 +25,9 @@ public class ProdutoService {
     @Autowired
     private ProdutoRepository produtoRepository;
 
+    @Autowired
+    private FileStorageService fileStorageService;
+
     public Produto salvarProduto(Produto produto) {
         if (produto.getId() == null) {
             produto.setDataCadastro(new Date());
@@ -29,15 +35,22 @@ public class ProdutoService {
         return produtoRepository.save(produto);
     }
 
-    // Método listarProdutos atualizado para aceitar Pageable e retornar Page<Produto>
+    @Transactional(readOnly = true)
     public Page<Produto> listarProdutos(String nomePesquisa, Pageable pageable) {
         if (StringUtils.hasText(nomePesquisa)) {
             return produtoRepository.findByNomeContainingIgnoreCase(nomePesquisa, pageable);
         } else {
-            return produtoRepository.findAll(pageable); // Usa o findAll que aceita Pageable
+            return produtoRepository.findAll(pageable);
         }
     }
 
+    // NOVO MÉTODO PARA LISTAR TODOS OS PRODUTOS (PARA SELEÇÃO EM MODAIS, ETC.)
+    @Transactional(readOnly = true)
+    public List<Produto> listarTodosProdutos() {
+        return produtoRepository.findAll(Sort.by(Sort.Direction.ASC, "nome")); // Ordena por nome
+    }
+
+    @Transactional(readOnly = true)
     public Optional<Produto> buscarPorId(Long id) {
         return produtoRepository.findById(id);
     }
@@ -50,7 +63,6 @@ public class ProdutoService {
         if (StringUtils.hasText(produtoDetalhes.getNome())) {
             produtoExistente.setNome(produtoDetalhes.getNome());
         }
-        // ... (outras atualizações de campo como antes) ...
         if (produtoDetalhes.getPreco() != null) {
             produtoExistente.setPreco(produtoDetalhes.getPreco());
         }
@@ -63,18 +75,20 @@ public class ProdutoService {
         if (StringUtils.hasText(produtoDetalhes.getCategoria())) {
             produtoExistente.setCategoria(produtoDetalhes.getCategoria());
         }
+        // urlImagem é gerenciada por salvarImagemProduto
         return produtoRepository.save(produtoExistente);
     }
+    
 
     @Transactional
     public void deletarProduto(Long id) {
-        if (!produtoRepository.existsById(id)) {
-            throw new RuntimeException("Produto não encontrado com id: " + id);
-        }
+        Produto produto = produtoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Produto não encontrado com id: " + id));
+
+        
         produtoRepository.deleteById(id);
     }
 
-    // Método de relatório (mantém como está)
     @Transactional(readOnly = true)
     public List<RelatorioMensalValorDTO> getRelatorioValorEntradaEstoqueMensal() {
         List<Object[]> resultados = produtoRepository.findValorEntradaEstoquePorMesRaw();

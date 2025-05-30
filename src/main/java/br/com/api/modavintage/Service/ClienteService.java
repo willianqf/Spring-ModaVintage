@@ -1,15 +1,16 @@
-package br.com.api.modavintage.Service; // Seu pacote
+package br.com.api.modavintage.Service;
 
 import br.com.api.modavintage.Model.Cliente;
 import br.com.api.modavintage.Repository.ClienteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page; // Importar Page
-import org.springframework.data.domain.Pageable; // Importar Pageable
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort; // Importar Sort
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional; // Opcional para read-only
-import org.springframework.util.StringUtils; // Para verificar se a string de pesquisa tem texto
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
-import java.util.List; // Manter se tiver um método que retorne List<Cliente> sem paginação
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -19,18 +20,22 @@ public class ClienteService {
     private ClienteRepository clienteRepository;
 
     public Cliente salvarCliente(Cliente cliente) {
-        // Adicionar qualquer lógica de validação ou pré-processamento aqui se necessário
         return clienteRepository.save(cliente);
     }
 
-    // Método listarClientes atualizado para aceitar Pageable e retornar Page<Cliente>
-    @Transactional(readOnly = true) // Boa prática para métodos de leitura
+    @Transactional(readOnly = true)
     public Page<Cliente> listarClientes(String nomePesquisa, Pageable pageable) {
         if (StringUtils.hasText(nomePesquisa)) {
             return clienteRepository.findByNomeContainingIgnoreCase(nomePesquisa, pageable);
         } else {
-            return clienteRepository.findAll(pageable); // Usa o findAll que aceita Pageable
+            return clienteRepository.findAll(pageable);
         }
+    }
+
+    // NOVO MÉTODO (ou renomear o seu listarTodosClientesSemPaginacao)
+    @Transactional(readOnly = true)
+    public List<Cliente> listarTodosClientes() {
+        return clienteRepository.findAll(Sort.by(Sort.Direction.ASC, "nome")); // Ordena por nome
     }
 
     @Transactional(readOnly = true)
@@ -42,7 +47,6 @@ public class ClienteService {
         Cliente clienteExistente = clienteRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Cliente não encontrado com id: " + id));
 
-        // Atualizar os campos do clienteExistente com os de clienteDetalhes
         if (StringUtils.hasText(clienteDetalhes.getNome())) {
             clienteExistente.setNome(clienteDetalhes.getNome());
         }
@@ -52,8 +56,6 @@ public class ClienteService {
         if (StringUtils.hasText(clienteDetalhes.getEmail())) {
             clienteExistente.setEmail(clienteDetalhes.getEmail());
         }
-        // Adicione outros campos se houver
-
         return clienteRepository.save(clienteExistente);
     }
 
@@ -62,12 +64,5 @@ public class ClienteService {
             throw new RuntimeException("Cliente não encontrado com id: " + id);
         }
         clienteRepository.deleteById(id);
-    }
-
-    // Se você tiver um método como este para pegar todos os clientes sem paginação,
-    // ele pode ser mantido, mas a listagem principal usará o paginado.
-    @Transactional(readOnly = true)
-    public List<Cliente> listarTodosClientesSemPaginacao() {
-        return clienteRepository.findAll();
     }
 }
