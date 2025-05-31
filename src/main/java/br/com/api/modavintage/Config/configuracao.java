@@ -50,9 +50,9 @@ public class configuracao implements CommandLineRunner {
         if (fornecedorRepository.count() == 0) {
             String[] nomeFornecedor = {"Alpha Tecidos", "Beta Peças", "Gamma Confecções", "Delta Atacado", "Epsilon Malhas"};
             String[] contatoFornecedor = {
-                "Contato Alpha - (11) 5555-1111", "Contato Beta - (22) 5555-2222",
-                "Contato Gamma - (33) 5555-3333", "Contato Delta - (44) 5555-4444",
-                "Contato Epsilon - (55) 5555-5555"
+                "(11) 5555-1111", "(22) 5555-2222",
+                "(33) 5555-3333", "(44) 5555-4444",
+                "(55) 5555-5555"
             };
             Random random = new Random();
             for (int i = 0; i < 10; i++) {
