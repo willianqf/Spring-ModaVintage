@@ -1,17 +1,19 @@
 package br.com.api.modavintage.Model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference; // Importar
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
 @Data
 @NoArgsConstructor
+@AllArgsConstructor // Se você tem o construtor explícito abaixo, @AllArgsConstructor pode ser redundante ou conflitar dependendo dos campos.
+                  // Considere remover o construtor explícito se @AllArgsConstructor já cobre suas necessidades
+                  // ou remova @AllArgsConstructor se preferir manter o construtor explícito.
+                  // Para este exemplo, manterei ambos, mas é um ponto de atenção.
 @Entity
 @Table(name = "itens_venda")
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"}) // Adicionar
 public class ItemVenda {
 
     @Id
@@ -19,24 +21,38 @@ public class ItemVenda {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "produto_id", nullable = false)
-
-    private Produto produto;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "venda_id", nullable = false)
-    @JsonBackReference 
+    @JoinColumn(name = "venda_id") // Assumindo que nullable = false foi removido ou é padrão e está OK
+    @JsonBackReference
     private Venda venda;
 
-    @Column(nullable = false)
-    private Integer quantidadeVendida;
+    @ManyToOne(fetch = FetchType.EAGER) // Mantido EAGER como no seu original
+    @JoinColumn(name = "produto_id")    // Assumindo que nullable = false foi removido ou é padrão e está OK
+    private Produto produto;
 
-    @Column(nullable = false)
-    private Double precoUnitario;
+    private Integer quantidade;
+    private Double precoUnitario; // Preço de venda unitário no momento da venda
 
-    public ItemVenda(Produto produto, Integer quantidadeVendida, Double precoUnitario) {
+    // Construtor existente no seu arquivo - verifique a necessidade dele vs @AllArgsConstructor
+    public ItemVenda(Produto produto, Integer quantidade, Double precoUnitario) {
         this.produto = produto;
-        this.quantidadeVendida = quantidadeVendida;
+        this.quantidade = quantidade;
         this.precoUnitario = precoUnitario;
     }
+
+    // MÉTODO ADICIONADO PARA CALCULAR O SUBTOTAL DO ITEM
+    public Double getSubtotal() {
+        if (this.precoUnitario == null || this.quantidade == null) {
+            // Retornar 0.0 ou lançar uma exceção, dependendo da sua lógica de negócio
+            // para itens com dados incompletos.
+            return 0.0;
+        }
+        return this.precoUnitario * this.quantidade;
+    }
+
+    // Se o erro persistir para getQuantidade() mesmo com @Data,
+    // você pode adicionar o getter explicitamente como um teste:
+    // public Integer getQuantidade() {
+    //     return this.quantidade;
+    // }
+    // E similar para outros campos se necessário.
 }

@@ -1,4 +1,4 @@
-package br.com.api.modavintage.Service; // Seu pacote
+package br.com.api.modavintage.Service;
 
 import br.com.api.modavintage.Model.Produto;
 import br.com.api.modavintage.Repository.ProdutoRepository;
@@ -6,13 +6,14 @@ import br.com.api.modavintage.dto.RelatorioMensalValorDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort; // Importar Sort
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
-import org.springframework.web.multipart.MultipartFile;
+// Removido import de MultipartFile e IOException pois a funcionalidade de imagem foi descontinuada
+// import org.springframework.web.multipart.MultipartFile;
+// import java.io.IOException;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -25,13 +26,15 @@ public class ProdutoService {
     @Autowired
     private ProdutoRepository produtoRepository;
 
-    @Autowired
-    private FileStorageService fileStorageService;
+    // Removido FileStorageService pois a funcionalidade de imagem foi descontinuada
+    // @Autowired
+    // private FileStorageService fileStorageService;
 
     public Produto salvarProduto(Produto produto) {
         if (produto.getId() == null) {
             produto.setDataCadastro(new Date());
         }
+        // O precoCusto será salvo se estiver presente no objeto produto
         return produtoRepository.save(produto);
     }
 
@@ -44,10 +47,9 @@ public class ProdutoService {
         }
     }
 
-    // NOVO MÉTODO PARA LISTAR TODOS OS PRODUTOS (PARA SELEÇÃO EM MODAIS, ETC.)
     @Transactional(readOnly = true)
     public List<Produto> listarTodosProdutos() {
-        return produtoRepository.findAll(Sort.by(Sort.Direction.ASC, "nome")); // Ordena por nome
+        return produtoRepository.findAll(Sort.by(Sort.Direction.ASC, "nome"));
     }
 
     @Transactional(readOnly = true)
@@ -63,7 +65,10 @@ public class ProdutoService {
         if (StringUtils.hasText(produtoDetalhes.getNome())) {
             produtoExistente.setNome(produtoDetalhes.getNome());
         }
-        if (produtoDetalhes.getPreco() != null) {
+        if (produtoDetalhes.getPrecoCusto() != null) { // ATUALIZADO AQUI
+            produtoExistente.setPrecoCusto(produtoDetalhes.getPrecoCusto());
+        }
+        if (produtoDetalhes.getPreco() != null) { // 'preco' é o preço de venda
             produtoExistente.setPreco(produtoDetalhes.getPreco());
         }
         if (produtoDetalhes.getEstoque() != null) {
@@ -75,17 +80,13 @@ public class ProdutoService {
         if (StringUtils.hasText(produtoDetalhes.getCategoria())) {
             produtoExistente.setCategoria(produtoDetalhes.getCategoria());
         }
-        // urlImagem é gerenciada por salvarImagemProduto
         return produtoRepository.save(produtoExistente);
     }
-    
 
     @Transactional
     public void deletarProduto(Long id) {
         Produto produto = produtoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Produto não encontrado com id: " + id));
-
-        
         produtoRepository.deleteById(id);
     }
 
@@ -99,6 +100,8 @@ public class ProdutoService {
                 .map(record -> {
                     Integer ano = (Integer) record[0];
                     Integer mes = (Integer) record[1];
+                    // O SUM(p.precoCusto * p.estoque) pode retornar null se não houver entradas no mês
+                    // ou se precoCusto for null para todos os produtos daquele mês.
                     Double valor = (record[2] == null) ? 0.0 : ((Number) record[2]).doubleValue();
                     String mesAno = String.format("%d-%02d", ano, mes);
                     return new RelatorioMensalValorDTO(mesAno, valor);

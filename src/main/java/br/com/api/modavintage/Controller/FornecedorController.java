@@ -4,16 +4,17 @@ import br.com.api.modavintage.Model.Fornecedor;
 import br.com.api.modavintage.Service.FornecedorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+// Removido PageRequest e List<Sort.Order>, ArrayList
+import org.springframework.data.domain.Pageable; // Importar Pageable
+import org.springframework.data.domain.Sort;      // Importar Sort
+import org.springframework.data.web.PageableDefault; // Importar PageableDefault
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.util.StringUtils; // Para StringUtils.hasText
+// Removido StringUtils se não for mais usado em outros lugares após esta mudança
 
-import java.util.ArrayList;
-import java.util.List;
+// import java.util.ArrayList; // Não mais necessário para ordenação manual
+// import java.util.List;    // Não mais necessário para List<String> sortParams
 
 @RestController
 @RequestMapping("/fornecedores")
@@ -31,39 +32,25 @@ public class FornecedorController {
     @GetMapping
     public ResponseEntity<Page<Fornecedor>> listarFornecedores(
             @RequestParam(required = false) String nome,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            // Espera múltiplos parâmetros sort, ex: ?sort=nome,asc&sort=id,desc
-            // Ou um único ?sort=nome,asc
-            @RequestParam(name = "sort", required = false) List<String> sortParams // Renomeado para clareza
+            // Deixe o Spring injetar e popular o Pageable diretamente
+            // A URL do frontend como ?page=0&size=10&sort=nome,ASC será interpretada corretamente
+            @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable
     ) {
-        List<Sort.Order> orders = new ArrayList<>();
-        System.out.println("Teste"); // Colocado o SystemOut 
-        if (sortParams != null && !sortParams.isEmpty()) {
-            for (String sortParam : sortParams) { // Cada sortParam deve ser "propriedade,direcao" ou "propriedade"
-                String[] parts = sortParam.split(",");
-                String property = parts[0].trim();
-                
-                if (StringUtils.hasText(property)) { // Garante que a propriedade não seja vazia
-                    Sort.Direction direction = Sort.Direction.ASC; // Padrão ASC
-                    if (parts.length > 1 && StringUtils.hasText(parts[1]) && parts[1].trim().equalsIgnoreCase("desc")) {
-                        direction = Sort.Direction.DESC;
-                    }
-                    orders.add(new Sort.Order(direction, property));
-                }
-            }
-        }
-        
-        // Se nenhuma ordenação válida foi criada a partir dos parâmetros (ou nenhum parâmetro sort foi enviado),
-        // aplica uma ordenação padrão.
-        if (orders.isEmpty()) {
-             orders.add(new Sort.Order(Sort.Direction.ASC, "id")); 
-        }
-        
-        Pageable pageable = PageRequest.of(page, size, Sort.by(orders));
-        
-        Page<Fornecedor> paginaFornecedores = fornecedorService.listarFornecedores(nome, pageable);
+        // O objeto 'pageable' já virá configurado com os parâmetros da requisição (page, size, sort).
+        // Se 'sort' não for passado na URL, o @PageableDefault (sort = "id", direction = Sort.Direction.ASC) será usado.
+        // Se 'sort=nome,ASC' for passado, ele sobrescreverá o default.
 
+        System.out.println("Controller: Pageable resolvido pelo Spring: " + pageable);
+        if (pageable.getSort().isSorted()) {
+            pageable.getSort().forEach(order -> {
+                System.out.println("Controller: Ordenando por: " + order.getProperty() + " -> " + order.getDirection());
+            });
+        } else {
+             System.out.println("Controller: Nenhuma ordenação específica solicitada, usando default ou nenhuma.");
+        }
+
+
+        Page<Fornecedor> paginaFornecedores = fornecedorService.listarFornecedores(nome, pageable);
         return ResponseEntity.ok(paginaFornecedores);
     }
 
@@ -90,6 +77,8 @@ public class FornecedorController {
             fornecedorService.deletarFornecedor(id);
             return ResponseEntity.noContent().build();
         } catch (RuntimeException e) {
+            // Se o serviço lança uma exceção específica para não encontrado, você pode capturá-la.
+            // Por enquanto, assumindo que lança RuntimeException se não encontrar.
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }

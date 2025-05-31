@@ -1,4 +1,5 @@
 package br.com.api.modavintage.Model;
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -12,7 +13,7 @@ import java.util.Date;
 @AllArgsConstructor
 @Entity
 @Table(name = "produtos")
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"}) // Adicionar
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Produto {
 
     @Id
@@ -20,17 +21,19 @@ public class Produto {
     private Long id;
 
     private String nome;
-    private Double preco;
-    private Integer estoque; // Quantidade em estoque
 
-    // Campos que reintroduzimos
+    @Column(nullable = true) // Permitir nulo inicialmente se houver dados existentes sem ele
+    private Double precoCusto; // NOVO CAMPO: Preço de custo
+
+    private Double preco;      // Este campo representa o Preço de Venda
+
+    private Integer estoque;
+
     private String tamanho;
     private String categoria;
 
     @Temporal(TemporalType.TIMESTAMP)
     private Date dataCadastro;
 
-    // A relação com ItemVenda é opcional (Ainda em análise ;/)
-    // @OneToMany(mappedBy = "produto", cascade = CascadeType.REFRESH, fetch = FetchType.LAZY)
-    // private List<ItemVenda> itensDeVenda;
+    // Getters e Setters são gerenciados pelo Lombok @Data
 }
