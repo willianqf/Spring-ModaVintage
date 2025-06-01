@@ -10,9 +10,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
-// Removido import de MultipartFile e IOException pois a funcionalidade de imagem foi descontinuada
-// import org.springframework.web.multipart.MultipartFile;
-// import java.io.IOException;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -26,13 +23,12 @@ public class ProdutoService {
     @Autowired
     private ProdutoRepository produtoRepository;
 
-    // Removido FileStorageService pois a funcionalidade de imagem foi descontinuada
-    // @Autowired
-    // private FileStorageService fileStorageService;
+    // FileStorageService foi removido em passos anteriores, mantendo assim.
 
     public Produto salvarProduto(Produto produto) {
-        if (produto.getId() == null) {
+        if (produto.getId() == null) { // Novo produto
             produto.setDataCadastro(new Date());
+            produto.setAtivo(true); // Garante que novos produtos são ativos
         }
         // O precoCusto será salvo se estiver presente no objeto produto
         return produtoRepository.save(produto);
@@ -41,31 +37,44 @@ public class ProdutoService {
     @Transactional(readOnly = true)
     public Page<Produto> listarProdutos(String nomePesquisa, Pageable pageable) {
         if (StringUtils.hasText(nomePesquisa)) {
-            return produtoRepository.findByNomeContainingIgnoreCase(nomePesquisa, pageable);
+            // Usa o novo método que busca por nome e apenas produtos ativos
+            return produtoRepository.findByNomeContainingIgnoreCaseAndAtivoTrue(nomePesquisa, pageable);
         } else {
-            return produtoRepository.findAll(pageable);
+            // Usa o novo método que lista todos os produtos ativos com paginação
+            return produtoRepository.findAllByAtivoTrue(pageable);
         }
     }
 
     @Transactional(readOnly = true)
-    public List<Produto> listarTodosProdutos() {
-        return produtoRepository.findAll(Sort.by(Sort.Direction.ASC, "nome"));
+    public List<Produto> listarTodosProdutosAtivos() { // Renomeado para clareza
+        // Lista todos os produtos ativos, ordenados por nome (como antes, mas agora filtrando por 'ativo')
+        return produtoRepository.findAllByAtivoTrue(Sort.by(Sort.Direction.ASC, "nome"));
     }
 
     @Transactional(readOnly = true)
-    public Optional<Produto> buscarPorId(Long id) {
+    public Optional<Produto> buscarPorIdAtivo(Long id) { // Renomeado para clareza
+        // Busca um produto ativo pelo ID
+        return produtoRepository.findByIdAndAtivoTrue(id);
+    }
+    
+    // Método para buscar por ID independentemente do status 'ativo'
+    // Pode ser útil para carregar dados de produtos em vendas antigas, se necessário.
+    @Transactional(readOnly = true)
+    public Optional<Produto> buscarPorIdQualquerStatus(Long id) {
         return produtoRepository.findById(id);
     }
 
+
     @Transactional
     public Produto atualizarProduto(Long id, Produto produtoDetalhes) {
-        Produto produtoExistente = produtoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Produto não encontrado com id: " + id));
+        // Busca um produto ativo para atualização
+        Produto produtoExistente = produtoRepository.findByIdAndAtivoTrue(id)
+                .orElseThrow(() -> new RuntimeException("Produto ativo não encontrado com id: " + id + " para atualização."));
 
         if (StringUtils.hasText(produtoDetalhes.getNome())) {
             produtoExistente.setNome(produtoDetalhes.getNome());
         }
-        if (produtoDetalhes.getPrecoCusto() != null) { // ATUALIZADO AQUI
+        if (produtoDetalhes.getPrecoCusto() != null) {
             produtoExistente.setPrecoCusto(produtoDetalhes.getPrecoCusto());
         }
         if (produtoDetalhes.getPreco() != null) { // 'preco' é o preço de venda
@@ -80,14 +89,29 @@ public class ProdutoService {
         if (StringUtils.hasText(produtoDetalhes.getCategoria())) {
             produtoExistente.setCategoria(produtoDetalhes.getCategoria());
         }
+        // O campo 'ativo' não é modificado aqui. Deve ser feito por um método específico se necessário.
         return produtoRepository.save(produtoExistente);
     }
 
     @Transactional
-    public void deletarProduto(Long id) {
-        Produto produto = produtoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Produto não encontrado com id: " + id));
-        produtoRepository.deleteById(id);
+    public void deletarProduto(Long id) { // Implementa Soft Delete
+        Produto produto = produtoRepository.findById(id) // Busca o produto independentemente do status ativo
+                .orElseThrow(() -> new RuntimeException("Produto não encontrado com id: " + id + " para exclusão."));
+
+        if (!produto.isAtivo()) {
+            // Opcional: Lançar uma exceção ou apenas informar se o produto já está inativo.
+            // Por enquanto, vamos permitir "re-inativar" sem erro.
+            // throw new RuntimeException("Produto com id: " + id + " já está inativo.");
+        }
+        
+        // TODO: Adicionar verificação aqui: um produto pode ser desativado se estiver em vendas não finalizadas?
+        // Por enquanto, a regra do documento é que vendas passadas devem ser mantidas.
+        // Desativar o produto não impede isso, graças ao snapshot.
+
+        produto.setAtivo(false);
+        // Opcional: Poderia-se registrar a data de inativação também, se houvesse um campo para isso.
+        // produto.setDataExclusao(new Date()); 
+        produtoRepository.save(produto);
     }
 
     @Transactional(readOnly = true)
@@ -100,8 +124,6 @@ public class ProdutoService {
                 .map(record -> {
                     Integer ano = (Integer) record[0];
                     Integer mes = (Integer) record[1];
-                    // O SUM(p.precoCusto * p.estoque) pode retornar null se não houver entradas no mês
-                    // ou se precoCusto for null para todos os produtos daquele mês.
                     Double valor = (record[2] == null) ? 0.0 : ((Number) record[2]).doubleValue();
                     String mesAno = String.format("%d-%02d", ano, mes);
                     return new RelatorioMensalValorDTO(mesAno, valor);

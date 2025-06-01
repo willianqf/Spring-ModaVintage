@@ -22,10 +22,10 @@ public class Produto {
 
     private String nome;
 
-    @Column(nullable = true) // Permitir nulo inicialmente se houver dados existentes sem ele
-    private Double precoCusto; // NOVO CAMPO: Preço de custo
+    @Column(nullable = true)
+    private Double precoCusto;
 
-    private Double preco;      // Este campo representa o Preço de Venda
+    private Double preco; // Preço de Venda
 
     private Integer estoque;
 
@@ -35,5 +35,18 @@ public class Produto {
     @Temporal(TemporalType.TIMESTAMP)
     private Date dataCadastro;
 
+    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT TRUE") // Novo campo para soft delete
+    private boolean ativo = true; // Default true para novos produtos e produtos existentes
+
     // Getters e Setters são gerenciados pelo Lombok @Data
+    // Se não estiver usando Lombok ou precisar de lógica customizada nos getters/setters,
+    // adicione-os manualmente.
+    // Ex:
+    // public boolean isAtivo() {
+    // return ativo;
+    // }
+    //
+    // public void setAtivo(boolean ativo) {
+    // this.ativo = ativo;
+    // }
 }
