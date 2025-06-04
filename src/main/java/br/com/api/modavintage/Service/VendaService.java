@@ -121,7 +121,7 @@ public class VendaService {
 
         // Estornar o estoque dos produtos
         for (ItemVenda item : venda.getItens()) {
-ue.
+
             if (item.getProduto() != null && item.getProduto().getId() != null) {
                 Produto produtoOriginal = produtoService.buscarPorIdQualquerStatus(item.getProduto().getId())
                     .orElse(null); // Decide como lidar se o produto original não for encontrado de forma alguma
