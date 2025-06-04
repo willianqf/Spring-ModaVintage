@@ -1,9 +1,9 @@
-package br.com.api.modavintage.Model; // Seu pacote
+package br.com.api.modavintage.Model; 
 
 import jakarta.persistence.*;
 import lombok.Data;
-import lombok.NoArgsConstructor; // Adicionado se ainda não estiver
-import lombok.AllArgsConstructor; // Adicionado se ainda não estiver
+import lombok.NoArgsConstructor; // 
+import lombok.AllArgsConstructor; //
 
 import java.util.Date; // Importar Date
 
@@ -11,7 +11,7 @@ import java.util.Date; // Importar Date
 @NoArgsConstructor  // Lombok para construtor sem argumentos
 @AllArgsConstructor // Lombok para construtor com todos os argumentos
 @Entity
-@Table(name = "usuario") // ou "usuarios" se for o nome da sua tabela
+@Table(name = "usuario") // 
 public class Usuario {
 
     @Id
@@ -30,7 +30,4 @@ public class Usuario {
     @Temporal(TemporalType.TIMESTAMP) // Define como a data/hora será persistida
     private Date dataExpiracaoTokenReset;
 
-    // Construtores, Getters e Setters são gerenciados pelo Lombok @Data,
-    // @NoArgsConstructor e @AllArgsConstructor.
-    // Se não estiver usando @AllArgsConstructor, crie construtores conforme necessário.
 }

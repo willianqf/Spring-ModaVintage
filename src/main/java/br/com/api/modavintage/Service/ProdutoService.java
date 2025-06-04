@@ -46,8 +46,8 @@ public class ProdutoService {
     }
 
     @Transactional(readOnly = true)
-    public List<Produto> listarTodosProdutosAtivos() { // Renomeado para clareza
-        // Lista todos os produtos ativos, ordenados por nome (como antes, mas agora filtrando por 'ativo')
+    public List<Produto> listarTodosProdutosAtivos() { 
+        // Lista todos os produtos ativos, ordenados por nome 
         return produtoRepository.findAllByAtivoTrue(Sort.by(Sort.Direction.ASC, "nome"));
     }
 
@@ -58,7 +58,6 @@ public class ProdutoService {
     }
     
     // Método para buscar por ID independentemente do status 'ativo'
-    // Pode ser útil para carregar dados de produtos em vendas antigas, se necessário.
     @Transactional(readOnly = true)
     public Optional<Produto> buscarPorIdQualquerStatus(Long id) {
         return produtoRepository.findById(id);
@@ -99,17 +98,11 @@ public class ProdutoService {
                 .orElseThrow(() -> new RuntimeException("Produto não encontrado com id: " + id + " para exclusão."));
 
         if (!produto.isAtivo()) {
-            // Opcional: Lançar uma exceção ou apenas informar se o produto já está inativo.
-            // Por enquanto, vamos permitir "re-inativar" sem erro.
             // throw new RuntimeException("Produto com id: " + id + " já está inativo.");
         }
         
-        // TODO: Adicionar verificação aqui: um produto pode ser desativado se estiver em vendas não finalizadas?
-        // Por enquanto, a regra do documento é que vendas passadas devem ser mantidas.
-        // Desativar o produto não impede isso, graças ao snapshot.
 
         produto.setAtivo(false);
-        // Opcional: Poderia-se registrar a data de inativação também, se houvesse um campo para isso.
         // produto.setDataExclusao(new Date()); 
         produtoRepository.save(produto);
     }

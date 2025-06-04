@@ -22,11 +22,8 @@ public class ItemVenda {
     @JsonBackReference
     private Venda venda;
 
-    // Opcional: Manter o link para o produto original, mesmo que inativo, para referência.
-    // Se o produto for excluído fisicamente (o que não faremos com soft delete), este link daria erro.
-    // Com soft delete, ele ainda aponta para o produto original, que pode estar 'ativo = false'.
     @ManyToOne(fetch = FetchType.EAGER) 
-    @JoinColumn(name = "produto_id", nullable = false) // Mantém o link ao produto original
+    @JoinColumn(name = "produto_id", nullable = false) 
     private Produto produto;
 
     private Integer quantidade;
@@ -38,9 +35,9 @@ public class ItemVenda {
     @Column(nullable = false)
     private String nomeProdutoSnapshot; // Nome do produto no momento da venda
     
-    private String tamanhoSnapshot; // Tamanho do produto no momento da venda (opcional)
+    private String tamanhoSnapshot; // Tamanho do produto no momento da venda 
     
-    private String categoriaSnapshot; // Categoria do produto no momento da venda (opcional)
+    private String categoriaSnapshot; // Categoria do produto no momento da venda 
 
 
     // Construtor para facilitar a criação com snapshots
@@ -58,9 +55,6 @@ public class ItemVenda {
         this.categoriaSnapshot = produto.getCategoria();
     }
     
-    // Lombok @Data gerencia Getters e Setters.
-    // Se você não estiver usando Lombok, adicione-os manualmente.
-
     // Método para calcular o subtotal do item, usando o preço do snapshot
     public Double getSubtotal() {
         if (this.precoUnitarioSnapshot == null || this.quantidade == null) {
@@ -69,12 +63,4 @@ public class ItemVenda {
         return this.precoUnitarioSnapshot * this.quantidade;
     }
 
-    // Renomeado de precoUnitario para precoUnitarioSnapshot para clareza
-    // Getter e Setter para precoUnitarioSnapshot (se não usar Lombok)
-    // public Double getPrecoUnitarioSnapshot() {
-    //    return precoUnitarioSnapshot;
-    // }
-    // public void setPrecoUnitarioSnapshot(Double precoUnitarioSnapshot) {
-    //    this.precoUnitarioSnapshot = precoUnitarioSnapshot;
-    // }
 }

@@ -1,9 +1,9 @@
-package br.com.api.modavintage.Security; // Seu pacote
+package br.com.api.modavintage.Security; //
 
 import br.com.api.modavintage.Service.UsuarioService;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
-import io.jsonwebtoken.SignatureException; // Corrigido para io.jsonwebtoken.SignatureException
+import io.jsonwebtoken.SignatureException; 
 import io.jsonwebtoken.UnsupportedJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -50,8 +50,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                 System.err.println("JwtRequestFilter: Não foi possível obter o token JWT (IllegalArgumentException): " + e.getMessage());
             } catch (ExpiredJwtException e) {
                 System.err.println("JwtRequestFilter: Token JWT expirou: " + e.getMessage());
-                // Para APIs, é melhor deixar o Spring Security lidar com a resposta de token expirado
-                // ou tratar de forma explícita mais adiante, em vez de escrever na response aqui.
+
             } catch (SignatureException e) { // io.jsonwebtoken.SignatureException
                 System.err.println("JwtRequestFilter: Assinatura JWT inválida: " + e.getMessage());
             } catch (MalformedJwtException e) {
@@ -88,16 +87,16 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                         SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
                         System.out.println("JwtRequestFilter: SecurityContextHolder atualizado para " + username + ". Autenticação: " + SecurityContextHolder.getContext().getAuthentication()); // DEBUG
                     } else {
-                        System.err.println("JwtRequestFilter: VALIDAÇÃO DO TOKEN FALHOU (jwtUtil.validateToken retornou false) para " + username); // DEBUG
+                        System.err.println("JwtRequestFilter: VALIDAÇÃO DO TOKEN FALHOU (jwtUtil.validateToken retornou false) para " + username); 
                     }
                 } catch (Exception e) {
-                    System.err.println("JwtRequestFilter: Erro durante jwtUtil.validateToken para " + username + ": " + e.getMessage()); // DEBUG
+                    System.err.println("JwtRequestFilter: Erro durante jwtUtil.validateToken para " + username + ": " + e.getMessage()); 
                 }
             } else {
-                 System.err.println("JwtRequestFilter: UserDetails não pôde ser carregado para o username: " + username); // DEBUG
+                 System.err.println("JwtRequestFilter: UserDetails não pôde ser carregado para o username: " + username); 
             }
         } else if (username == null) {
-            System.out.println("JwtRequestFilter: Username não foi extraído do token para " + requestURI); // DEBUG
+            System.out.println("JwtRequestFilter: Username não foi extraído do token para " + requestURI); 
         } else {
             System.out.println("JwtRequestFilter: SecurityContext já tem uma autenticação para " + username + " em " + requestURI + ": " + SecurityContextHolder.getContext().getAuthentication()); // DEBUG
         }

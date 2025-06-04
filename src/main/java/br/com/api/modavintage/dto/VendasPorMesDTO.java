@@ -1,4 +1,4 @@
-package br.com.api.modavintage.dto; // pacote DTO
+package br.com.api.modavintage.dto; //  DTO
 
 public class VendasPorMesDTO {
     private String mesAno; // Formato "YYYY-MM" o

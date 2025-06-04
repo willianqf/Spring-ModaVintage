@@ -1,4 +1,4 @@
-package br.com.api.modavintage.Service; // Seu pacote
+package br.com.api.modavintage.Service; 
 
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;

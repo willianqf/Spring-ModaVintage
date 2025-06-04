@@ -1,4 +1,4 @@
-package br.com.api.modavintage.dto; // Seu pacote DTO
+package br.com.api.modavintage.dto; // DTO
 
 public class ResetarSenhaDTO {
     private String token;

@@ -1,11 +1,11 @@
 package br.com.api.modavintage.Service;
 
-import br.com.api.modavintage.Model.Cliente; // Import Cliente
+import br.com.api.modavintage.Model.Cliente; // 
 import br.com.api.modavintage.Model.ItemVenda;
 import br.com.api.modavintage.Model.Produto;
 import br.com.api.modavintage.Model.Venda;
 import br.com.api.modavintage.Repository.VendaRepository;
-// Removido ClienteRepository e ProdutoRepository daqui, usaremos os services
+
 import br.com.api.modavintage.dto.VendasPorMesDTO;
 import br.com.api.modavintage.dto.RelatorioLucratividadeMensalDTO; 
 
@@ -34,7 +34,7 @@ public class VendaService {
     private ClienteService clienteService; // Usar ClienteService para buscar clientes ativos
 
     @Transactional
-    public Venda salvarVenda(Venda vendaRequest) { // 'vendaRequest' é o DTO/payload da requisição
+    public Venda salvarVenda(Venda vendaRequest) { // 'vendaRequest' : o DTO/payload da requisição
         Venda novaVenda = new Venda();
         novaVenda.setDataVenda(new Date());
         
@@ -43,7 +43,7 @@ public class VendaService {
         // Lidar com o Cliente e Snapshot de Cliente
         if (vendaRequest.getCliente() != null && vendaRequest.getCliente().getId() != null) {
             Long clienteId = vendaRequest.getCliente().getId();
-            // Busca apenas cliente ativo. Se o frontend enviar ID de cliente inativo, a venda não deve ser com ele.
+            // Busca apenas cliente ativo. Se o frontend enviar ID de cliente inativoa venda não deve ser com ele.
             Cliente clienteAtivo = clienteService.buscarPorIdAtivo(clienteId)
                 .orElseThrow(() -> new RuntimeException("Cliente ativo não encontrado com id: " + clienteId + 
                                                        ". Verifique se o cliente está ativo ou selecione outro."));
@@ -104,13 +104,13 @@ public class VendaService {
     @Transactional(readOnly = true)
     public Page<Venda> listarVendas(Pageable pageable) {
         // Ao listar vendas, os snapshots já contêm os dados históricos.
-        // As entidades Produto e Cliente associadas podem estar inativas.
+
         return vendaRepository.findAll(pageable);
     }
 
     @Transactional(readOnly = true)
-    public Optional<Venda> buscarVendaPorId(Long id) { // Nome do método CORRIGIDO para "buscarVendaPorId"
-        // Similar à listagem, os snapshots devem ser usados para exibir dados históricos.
+    public Optional<Venda> buscarVendaPorId(Long id) { 
+        // Similar à listagem, os snapshots devem ser usados para exibir dados históricos
         return vendaRepository.findById(id);
     }
 
@@ -121,11 +121,7 @@ public class VendaService {
 
         // Estornar o estoque dos produtos
         for (ItemVenda item : venda.getItens()) {
-            // Precisamos do produto original para estornar o estoque.
-            // Se o produto foi fisicamente deletado (o que não deve acontecer com soft delete),
-            // ou se o link em ItemVenda.produto for nulo por algum motivo, isso falharia.
-            // Com soft delete, o produtoService.buscarPorIdQualquerStatus pode buscar o produto
-            // mesmo que esteja inativo para atualizar seu estoque.
+ue.
             if (item.getProduto() != null && item.getProduto().getId() != null) {
                 Produto produtoOriginal = produtoService.buscarPorIdQualquerStatus(item.getProduto().getId())
                     .orElse(null); // Decide como lidar se o produto original não for encontrado de forma alguma

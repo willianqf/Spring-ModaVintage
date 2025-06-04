@@ -1,4 +1,4 @@
-package br.com.api.modavintage.Notification; // Seu pacote
+package br.com.api.modavintage.Notification; 
 
 import org.springframework.stereotype.Service;
 

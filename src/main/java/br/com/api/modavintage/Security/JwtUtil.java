@@ -18,9 +18,8 @@ import java.util.function.Function;
 @Component
 public class JwtUtil {
 
-    // Chave secreta para assinar o token. Deve ser longa e complexa.
-    // Em produção, ISSO DEVE VIR DE UMA CONFIGURAÇÃO EXTERNA SEGURA
-    @Value("${jwt.secret:DefaultSecretKeyQueSejaBemLongaParaSerSeguraPeloMenos256Bits}") // Exemplo, coloque no application.properties
+
+    @Value("${jwt.secret:DefaultSecretKeyQueSejaBemLongaParaSerSeguraPeloMenos256Bits}") // Não colocar em produção
     private String secretString;
 
     @Value("${jwt.expiration.ms:3600000}") // 1 hora por padrão
@@ -30,13 +29,6 @@ public class JwtUtil {
 
     @PostConstruct
     public void init() {
-        // Decodifica a string secreta para uma Key. Se a string não for base64 válida ou muito curta, pode dar erro.
-        // Idealmente, use Keys.hmacShaKeyFor(secretString.getBytes(StandardCharsets.UTF_8)) se a string for forte o suficiente
-        // ou gere uma chave mais robusta. Para este exemplo, Keys.secretKeyFor é mais simples se a string for fraca.
-        // Para uma string definida, você pode usar:
-        // byte[] keyBytes = Decoders.BASE64.decode(this.secretString);
-        // this.secretKey = Keys.hmacShaKeyFor(keyBytes);
-        // Ou, para gerar uma chave segura se a string não for base64:
         this.secretKey = Keys.hmacShaKeyFor(secretString.getBytes()); // Garanta que secretString seja forte
     }
 
@@ -69,17 +61,14 @@ public class JwtUtil {
     // Gera um token para o usuário
     public String generateToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
-        // Você pode adicionar mais claims aqui se precisar (ex: roles)
-        // List<String> roles = userDetails.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList());
-        // claims.put("roles", roles);
         return createToken(claims, userDetails.getUsername());
     }
 
-    // Cria o token com os claims, o subject (username) e a data de expiração
+    // Cria o token com os claims o subject (username) e a data de expiração
     private String createToken(Map<String, Object> claims, String subject) {
         return Jwts.builder()
                 .setClaims(claims)
-                .setSubject(subject) // O "subject" do token, geralmente o username/email
+                .setSubject(subject) // O "subject" do token, e o username/email
                 .setIssuedAt(new Date(System.currentTimeMillis())) // Data de criação
                 .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationInMs)) // Data de expiração
                 .signWith(secretKey, SignatureAlgorithm.HS256) // Assina com a chave e algoritmo

@@ -32,16 +32,13 @@ public class VendaController {
             Venda vendaSalva = vendaService.salvarVenda(vendaRequest);
             return ResponseEntity.status(HttpStatus.CREATED).body(vendaSalva);
         } catch (IllegalArgumentException e) {
-            // Erros como: "A venda deve conter pelo menos um item", "Produto não especificado", "Quantidade inválida"
+            // Erros: "A venda deve conter pelo menos um item", "Produto não especificado", "Quantidade inválida"
             return ResponseEntity.badRequest().body(Map.of("erro", e.getMessage()));
         } catch (IllegalStateException e) {
-            // Erros como: "Estoque insuficiente para o produto..."
-            // HttpStatus.CONFLICT (409) é uma boa opção para conflitos de estado como falta de estoque.
+            // Erros: "Estoque insuficiente para o produto..."
             return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("erro", e.getMessage()));
         } catch (RuntimeException e) {
-            // Para exceções como "Produto ativo não encontrado" ou "Cliente ativo não encontrado"
-            // Essas indicam que a entidade referenciada na requisição não está disponível para a operação.
-            // HttpStatus.UNPROCESSABLE_ENTITY (422) é adequado aqui.
+
             if (e.getMessage() != null && (e.getMessage().contains("não encontrado") || e.getMessage().contains("inativo"))) {
                  return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(Map.of("erro", e.getMessage()));
             }
@@ -63,7 +60,7 @@ public class VendaController {
 
     @GetMapping("/{id}")
     public ResponseEntity<Venda> buscarVendaPorId(@PathVariable Long id) {
-        // O VendaService.buscarPorId(id) deve estar correto (sem 'Ativo' no nome)
+
         return vendaService.buscarVendaPorId(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());

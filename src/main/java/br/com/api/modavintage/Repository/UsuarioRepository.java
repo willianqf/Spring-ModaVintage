@@ -1,8 +1,8 @@
-package br.com.api.modavintage.Repository; // Seu pacote
+package br.com.api.modavintage.Repository; 
 
 import br.com.api.modavintage.Model.Usuario;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository; // Adicionar @Repository se ainda não tiver
+import org.springframework.stereotype.Repository; //
 
 import java.util.Optional;
 

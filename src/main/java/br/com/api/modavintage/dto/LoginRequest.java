@@ -4,7 +4,7 @@ public class LoginRequest {
     private String email;
     private String senha;
 
-    // Getters e Setters (ou use Lombok @Data)
+    // Getters e Setters 
     public String getEmail() {
         return email;
     }

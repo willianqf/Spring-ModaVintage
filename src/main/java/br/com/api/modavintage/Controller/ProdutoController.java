@@ -10,12 +10,9 @@ import org.springframework.data.domain.Sort;      // Importar Sort
 import org.springframework.data.web.PageableDefault; // Importar PageableDefault
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-// Removido StringUtils e PageRequest se @PageableDefault for suficiente
-import org.springframework.web.bind.annotation.*;
-// Removido MultipartFile pois a funcionalidade de imagem foi descontinuada/pendente
-// import org.springframework.web.multipart.MultipartFile;
 
-// import java.io.IOException; // Não é mais necessário se não houver upload de arquivo
+import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 import java.util.Map;
 
@@ -37,13 +34,13 @@ public class ProdutoController {
             @RequestParam(required = false) String nome,
             @PageableDefault(size = 10, sort = "nome", direction = Sort.Direction.ASC) Pageable pageable
     ) {
-        Page<Produto> paginaProdutos = produtoService.listarProdutos(nome, pageable); // Este método já busca ativos
+        Page<Produto> paginaProdutos = produtoService.listarProdutos(nome, pageable); 
         return ResponseEntity.ok(paginaProdutos);
     }
 
     @GetMapping("/todos") // Endpoint para listar TODOS os produtos ATIVOS (sem paginação)
     public ResponseEntity<List<Produto>> listarTodosOsProdutos() {
-        // Chama o método renomeado no serviço
+    
         List<Produto> produtos = produtoService.listarTodosProdutosAtivos();
         if (produtos.isEmpty()) {
             return ResponseEntity.noContent().build();
@@ -62,7 +59,6 @@ public class ProdutoController {
     @PutMapping("/{id}")
     public ResponseEntity<?> atualizarProduto(@PathVariable Long id, @RequestBody Produto produtoDetalhes) {
         try {
-            // O método atualizarProduto no serviço já deve buscar por produto ativo
             Produto produtoAtualizado = produtoService.atualizarProduto(id, produtoDetalhes);
             return ResponseEntity.ok(produtoAtualizado);
         } catch (RuntimeException e) {

@@ -1,15 +1,14 @@
-package br.com.api.modavintage.Notification; // Seu pacote
-
+package br.com.api.modavintage.Notification; 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Primary; // IMPORTAR ESTA ANOTAÇÃO
+import org.springframework.context.annotation.Primary; // IMPORTAR ANOTAÇÃO
 import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
-@Service("smtpEmailService") // O nome do bean aqui é "smtpEmailService"
-@Primary // <<--- ADICIONE ESTA ANOTAÇÃO
+@Service("smtpEmailService") // O nome do bean : "smtpEmailService"
+@Primary // O
 public class SmtpEmailServiceImpl implements EmailService {
 
     @Autowired

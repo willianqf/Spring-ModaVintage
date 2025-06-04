@@ -38,15 +38,4 @@ public class Produto {
     @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT TRUE") // Novo campo para soft delete
     private boolean ativo = true; // Default true para novos produtos e produtos existentes
 
-    // Getters e Setters são gerenciados pelo Lombok @Data
-    // Se não estiver usando Lombok ou precisar de lógica customizada nos getters/setters,
-    // adicione-os manualmente.
-    // Ex:
-    // public boolean isAtivo() {
-    // return ativo;
-    // }
-    //
-    // public void setAtivo(boolean ativo) {
-    // this.ativo = ativo;
-    // }
 }

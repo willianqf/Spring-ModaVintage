@@ -3,8 +3,8 @@ package br.com.api.modavintage.Controller;
 import br.com.api.modavintage.Model.Usuario;
 import br.com.api.modavintage.Security.JwtUtil;
 import br.com.api.modavintage.Service.UsuarioService;
-import br.com.api.modavintage.dto.JwtResponse; // Importar DTO externo
-import br.com.api.modavintage.dto.LoginRequest; // Importar DTO externo
+import br.com.api.modavintage.dto.JwtResponse; // Importar DTO 
+import br.com.api.modavintage.dto.LoginRequest; // Importar DTO 
 import br.com.api.modavintage.dto.ResetarSenhaDTO;
 import br.com.api.modavintage.dto.SolicitarResetSenhaDTO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,9 +17,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map; // Para Map.of
-
-// As classes internas JwtResponse e LoginRequest foram removidas daqui
-// e agora são importadas do pacote dto.
 
 @RestController
 @RequestMapping("/auth")
@@ -38,9 +35,8 @@ public class AuthController {
     public ResponseEntity<?> registrarUsuario(@RequestBody Usuario usuario) {
         try {
             Usuario novoUsuario = usuarioService.cadastrarUsuario(usuario);
-            // Idealmente, retornar um DTO de resposta para usuário também.
-            // Por enquanto, apenas os campos não sensíveis.
-            Usuario respostaUsuario = new Usuario(); // Simplesmente para não expor senha hasheada
+            // retornar um DTO de resposta para usuário 
+            Usuario respostaUsuario = new Usuario(); // OBS: Não expor senha hasheada. Verificar no log
             respostaUsuario.setId(novoUsuario.getId());
             respostaUsuario.setEmail(novoUsuario.getEmail());
             return ResponseEntity.status(HttpStatus.CREATED).body(respostaUsuario);
@@ -71,8 +67,6 @@ public class AuthController {
             usuarioService.solicitarResetSenha(solicitarResetDTO.getEmail());
             return ResponseEntity.ok().body(Map.of("mensagem", "Se um email correspondente for encontrado em nossos registros, instruções para redefinir a senha foram enviadas."));
         } catch (Exception e) {
-            // Retorna uma mensagem genérica para não revelar se o email existe ou não
-            // mas o serviço pode ter logado o erro real
             return ResponseEntity.ok().body(Map.of("mensagem", "Se um email correspondente for encontrado em nossos registros, instruções para redefinir a senha foram enviadas."));
         }
     }

@@ -1,4 +1,4 @@
-package br.com.api.modavintage.Service; // Seu pacote
+package br.com.api.modavintage.Service; // 
 
 import br.com.api.modavintage.Model.Usuario;
 import br.com.api.modavintage.Repository.UsuarioRepository;
@@ -18,7 +18,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import java.security.SecureRandom; // Para gerar números aleatórios seguros
-import java.text.DecimalFormat; // Para formatar o número com zeros à esquerda
+import java.text.DecimalFormat; // Para formatar o número com zeros a esquerda
 
 @Service
 public class UsuarioService implements UserDetailsService {
@@ -79,10 +79,6 @@ public class UsuarioService implements UserDetailsService {
         Optional<Usuario> usuarioOptional = usuarioRepository.findByEmail(email);
         if (usuarioOptional.isEmpty()) {
             System.err.println("Tentativa de reset para email não cadastrado (ou para não vazar informação): " + email);
-            // NÃO lance uma exceção que revele se o email existe ou não.
-            // Apenas retorne ou envie o email (simulado) se existir.
-            // Para o usuário, a mensagem será sempre "Se o email existir..."
-            // A simulação de email abaixo só ocorrerá se o usuário for encontrado.
             return; // Sai silenciosamente se o email não for encontrado
         }
 
@@ -95,15 +91,10 @@ public class UsuarioService implements UserDetailsService {
         usuario.setDataExpiracaoTokenReset(new Date(System.currentTimeMillis() + EXPIRACAO_TOKEN_RESET_MS));
         usuarioRepository.save(usuario);
 
-        // Enviar o "email" (logar no console)
-        // Idealmente, o nome do usuário viria da entidade Usuario se você tiver um campo 'nome' lá.
-        // Se não, podemos usar o email ou uma saudação genérica.
-        // Supondo que Usuario tem getNome() ou passamos o email como nome.
-        String nomeParaEmail = usuario.getEmail(); // Ou usuario.getNome() se existir
+        String nomeParaEmail = usuario.getEmail(); // usuario.getNome() se existir
         emailService.enviarEmailResetSenha(usuario.getEmail(), nomeParaEmail, token);
 
         System.out.println("Simulação de envio de token de reset para " + email + " concluída. Verifique o console do backend.");
-        // NÃO RETORNE MAIS O TOKEN AQUI DIRETAMENTE PARA A API
     }
 
     @Transactional
@@ -114,7 +105,7 @@ public class UsuarioService implements UserDetailsService {
         }
         if (novaSenha.length() < 6) { // Validação de tamanho da nova senha
             System.err.println("Nova senha muito curta.");
-            return false; // Ou lançar exceção
+            return false; // lançar exceção
         }
 
         Optional<Usuario> usuarioOptional = usuarioRepository.findByTokenResetSenha(token);

@@ -13,7 +13,7 @@ import java.nio.file.Paths;
 public class MvcConfig implements WebMvcConfigurer {
 
     // Pega o nome da pasta do application.properties para flexibilidade
-    @Value("${app.upload.dir:${user.dir}/uploads}") // Padrão é uma pasta 'uploads' na raiz do projeto
+    @Value("${app.upload.dir:${user.dir}/uploads}") // 
     private String uploadDir;
 
     @Override

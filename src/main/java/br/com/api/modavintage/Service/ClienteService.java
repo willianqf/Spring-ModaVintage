@@ -36,12 +36,12 @@ public class ClienteService {
     }
 
     @Transactional(readOnly = true)
-    public List<Cliente> listarTodosClientesAtivos() { // Renomeado para clareza
+    public List<Cliente> listarTodosClientesAtivos() { 
         return clienteRepository.findAllByAtivoTrue(Sort.by(Sort.Direction.ASC, "nome"));
     }
 
     @Transactional(readOnly = true)
-    public Optional<Cliente> buscarPorIdAtivo(Long id) { // Renomeado para clareza
+    public Optional<Cliente> buscarPorIdAtivo(Long id) { 
         return clienteRepository.findByIdAndAtivoTrue(id);
     }
 
@@ -60,7 +60,6 @@ public class ClienteService {
             clienteExistente.setNome(clienteDetalhes.getNome());
         }
         // Atualiza telefone e email, permitindo que sejam definidos como null ou string vazia
-        // A lógica no frontend/DTO pode precisar garantir que null seja enviado se o campo for limpo
         clienteExistente.setTelefone(clienteDetalhes.getTelefone());
         clienteExistente.setEmail(clienteDetalhes.getEmail());
         
@@ -74,14 +73,9 @@ public class ClienteService {
                 .orElseThrow(() -> new RuntimeException("Cliente não encontrado com id: " + id + " para exclusão."));
 
         if (!cliente.isAtivo()) {
-            // Opcional: Lançar exceção ou informar se já está inativo
             // throw new RuntimeException("Cliente com id: " + id + " já está inativo.");
         }
 
-        // TODO: Verificar regra de negócio: Um cliente pode ser "desativado" se tiver vendas associadas?
-        // O documento de caso de uso diz: "O aplicativo deve manter vendas realizados por um cliente deletado."
-        // O soft delete atende a isso, pois o cliente ainda existe.
-        // A questão é se há alguma restrição adicional (ex: não poder desativar se tiver pedidos em aberto - não parece ser o caso aqui).
 
         cliente.setAtivo(false);
         clienteRepository.save(cliente);

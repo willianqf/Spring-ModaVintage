@@ -1,9 +1,8 @@
-package br.com.api.modavintage.Service; // Seu pacote
-
+package br.com.api.modavintage.Service; // 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.util.StringUtils; // Para limpar nomes de arquivo
+import org.springframework.util.StringUtils; 
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,7 +13,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.UUID;
 
 @Service("localStorageFileService")
-// @org.springframework.context.annotation.Primary // Se esta for a implementação padrão
+// @org.springframework.context.annotation.Primary // 
 public class LocalStorageFileServiceImpl implements FileStorageService {
 
     private final Path diretorioDeUpload;
@@ -42,14 +41,14 @@ public class LocalStorageFileServiceImpl implements FileStorageService {
         String extensao = "";
         int i = nomeOriginal.lastIndexOf('.');
         if (i > 0) {
-            extensao = nomeOriginal.substring(i); // ex: .jpg, .png
+            extensao = nomeOriginal.substring(i); 
         }
         // Nome do arquivo: produto_{id}_uuid.{extensao}
         String nomeArquivoUnico = "produto_" + produtoId + "_" + UUID.randomUUID().toString() + extensao;
 
         Path caminhoDestino = this.diretorioDeUpload.resolve(nomeArquivoUnico).normalize();
 
-        // Verifica se o caminho de destino está dentro do diretório de upload pai (segurança)
+        // Verifica se o caminho de destino está dentro do diretório de upload pai )
         if (!caminhoDestino.getParent().equals(this.diretorioDeUpload)) {
             throw new IOException("Não é possível salvar arquivo fora do diretório de upload raiz.");
         }
@@ -70,7 +69,7 @@ public class LocalStorageFileServiceImpl implements FileStorageService {
         }
         try {
             Path arquivoParaDeletar = this.diretorioDeUpload.resolve(nomeArquivo).normalize();
-            // Verifica se o arquivo está dentro do diretório de upload (segurança)
+            // Verifica se o arquivo está dentro do diretório de upload 
             if (Files.exists(arquivoParaDeletar) && arquivoParaDeletar.getParent().equals(this.diretorioDeUpload)) {
                 Files.delete(arquivoParaDeletar);
                 System.out.println("Arquivo deletado com sucesso: " + nomeArquivo);

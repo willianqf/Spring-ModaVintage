@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
-import java.util.Random; // Removido import de java.util.List pois não é usado
+import java.util.Random; // Removido import de java.util.List 
 
 @Component
 public class configuracao implements CommandLineRunner {
@@ -26,8 +26,6 @@ public class configuracao implements CommandLineRunner {
 
     @Autowired
     private FornecedorRepository fornecedorRepository;
-
-    // Removida duplicata de UsuarioRepository
 
     @Autowired
     private PasswordEncoder passwordEncoder;

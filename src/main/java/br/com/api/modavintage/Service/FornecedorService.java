@@ -1,15 +1,15 @@
-package br.com.api.modavintage.Service; // Seu pacote
+package br.com.api.modavintage.Service; // 
 
 import br.com.api.modavintage.Model.Fornecedor;
 import br.com.api.modavintage.Repository.FornecedorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page; // Importar Page
-import org.springframework.data.domain.Pageable; // Importar Pageable
+import org.springframework.data.domain.Page; 
+import org.springframework.data.domain.Pageable; 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-// Removido import de java.util.List se não for mais usado aqui
+// import de java.util.List 
 import java.util.Optional;
 
 @Service

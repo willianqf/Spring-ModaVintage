@@ -1,13 +1,13 @@
 package br.com.api.modavintage.Config;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.security.servlet.PathRequest; // Importar para recursos estáticos
+import org.springframework.boot.autoconfigure.security.servlet.PathRequest; // recursos estáticos
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer; // Para desabilitar CSRF de forma mais moderna
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer; // Para desabilitar CSRF 
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer; // Para frameOptions
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -28,7 +28,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 public class SecurityConfig {
 
-    @Autowired // Injetar o filtro JWT
+    @Autowired // Injeta o filtro JWT
     private JwtRequestFilter jwtRequestFilter;
 
     /* 
@@ -69,8 +69,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.POST, "/auth/registrar").permitAll()
                 .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
-                .requestMatchers(HttpMethod.POST, "/auth/solicitar-reset-senha").permitAll() // ADICIONADO
-                .requestMatchers(HttpMethod.POST, "/auth/resetar-senha").permitAll()     // ADICIONADO
+                .requestMatchers(HttpMethod.POST, "/auth/solicitar-reset-senha").permitAll() 
+                .requestMatchers(HttpMethod.POST, "/auth/resetar-senha").permitAll()     
                 .requestMatchers(HttpMethod.GET, "/produtos").permitAll()
                 .requestMatchers(HttpMethod.GET, "/produtos/**").permitAll()
                 .anyRequest().authenticated()

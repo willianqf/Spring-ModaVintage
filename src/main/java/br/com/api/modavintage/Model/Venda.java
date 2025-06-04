@@ -22,13 +22,13 @@ public class Venda {
     private Long id;
 
     // O link para o cliente original pode ser mantido para referência,
-    // mesmo que o cliente seja desativado (ativo=false).
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cliente_id", nullable = true) // Cliente pode ser nulo para vendas anônimas
     private Cliente cliente;
 
     // Campos de Snapshot para dados do cliente no momento da venda
-    // Estes campos são preenchidos se um cliente for associado à venda.
+    // Estes campos são preenchidos se um cliente for associado a venda
     @Column(nullable = true)
     private String nomeClienteSnapshot;
 
@@ -50,8 +50,4 @@ public class Venda {
     @Column(nullable = false)
     private Date dataVenda;
 
-    // O método adicionarItem foi removido daqui, pois a lógica de criação de ItemVenda
-    // com snapshots será gerenciada no VendaService ao construir a Venda.
-    // Se você tiver um caso de uso para Venda.adicionarItem() diretamente,
-    // precisaria garantir que os snapshots em ItemVenda sejam preenchidos corretamente.
 }
