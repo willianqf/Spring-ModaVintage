@@ -70,7 +70,7 @@ public class JwtUtil {
                 .setClaims(claims)
                 .setSubject(subject) // O "subject" do token, e o username/email
                 .setIssuedAt(new Date(System.currentTimeMillis())) // Data de criação
-                .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationInMs)) // Data de expiração
+                .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationInMs)) // Data de expiraça
                 .signWith(secretKey, SignatureAlgorithm.HS256) // Assina com a chave e algoritmo
                 .compact();
     }
