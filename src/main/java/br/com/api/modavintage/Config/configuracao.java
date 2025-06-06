@@ -33,6 +33,7 @@ public class configuracao implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) throws Exception {
+        /*
         System.out.println("Carregando dados iniciais...");
 
         // Criar Usuário (Proprietária)
@@ -103,7 +104,7 @@ public class configuracao implements CommandLineRunner {
             }
             System.out.println("10 Clientes de teste criados.");
         }
-
+        */
         System.out.println("Carga de dados iniciais concluída.");
     }
 }
