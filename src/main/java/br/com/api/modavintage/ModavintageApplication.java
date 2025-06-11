@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 /*
  * Spring Initializr: Create a Maven Project
  * v3.5.0
- * JAVA / Pacote JAR / JAVA VERSION 24
+ * JAVA / Pacote JAR / JAVA VERSION 17
  * BR.COM.Modavintagem
  * 
  * 

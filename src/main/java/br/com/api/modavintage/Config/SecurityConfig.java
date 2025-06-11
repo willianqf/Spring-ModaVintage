@@ -1,18 +1,17 @@
 package br.com.api.modavintage.Config;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile; // IMPORTAR ESTA LINHA
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer; 
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -33,7 +32,7 @@ public class SecurityConfig {
     
     @Bean
     @Order(1)
-    @Profile("dev") // ADICIONE ESTA ANOTAÇÃO
+    @Profile("dev")
     public SecurityFilterChain h2ConsoleSecurityFilterChain(HttpSecurity http) throws Exception {
         http
             .securityMatcher(PathRequest.toH2Console())
@@ -53,12 +52,22 @@ public class SecurityConfig {
             .csrf(AbstractHttpConfigurer::disable)
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers(HttpMethod.POST, "/auth/registrar").permitAll()
-                .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
-                .requestMatchers(HttpMethod.POST, "/auth/solicitar-reset-senha").permitAll() 
-                .requestMatchers(HttpMethod.POST, "/auth/resetar-senha").permitAll()     
-                .requestMatchers(HttpMethod.GET, "/produtos").permitAll()
+                // Permite todos os endpoints de autenticação
+                .requestMatchers(HttpMethod.POST, "/auth/**").permitAll()
+                
+                // Permite acesso público para visualizar produtos
                 .requestMatchers(HttpMethod.GET, "/produtos/**").permitAll()
+                
+                // ===== CORREÇÃO PRINCIPAL =====
+                // Adicionando regras explícitas para os endpoints GET de vendas que estavam retornando 403.
+                // Esta especificidade garante que o Spring Security aplique a permissão corretamente.
+                .requestMatchers(HttpMethod.GET, "/vendas/cliente/**").authenticated()
+                .requestMatchers(HttpMethod.GET, "/vendas/data").authenticated()
+
+                // Mantemos a regra genérica para os outros métodos de /vendas (como POST e DELETE)
+                .requestMatchers("/vendas/**").authenticated()
+
+                // Exige autenticação para todas as outras requisições
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
