@@ -52,22 +52,16 @@ public class SecurityConfig {
             .csrf(AbstractHttpConfigurer::disable)
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                // Permite todos os endpoints de autenticação
-                .requestMatchers(HttpMethod.POST, "/auth/**").permitAll()
-                
-                // Permite acesso público para visualizar produtos
+                // Endpoints públicos
+                .requestMatchers("/auth/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/produtos/**").permitAll()
-                
-                // ===== CORREÇÃO PRINCIPAL =====
-                // Adicionando regras explícitas para os endpoints GET de vendas que estavam retornando 403.
-                // Esta especificidade garante que o Spring Security aplique a permissão corretamente.
-                .requestMatchers(HttpMethod.GET, "/vendas/cliente/**").authenticated()
-                .requestMatchers(HttpMethod.GET, "/vendas/data").authenticated()
 
-                // Mantemos a regra genérica para os outros métodos de /vendas (como POST e DELETE)
+                // ===== CORREÇÃO APLICADA =====
+                // Adicionando uma regra explícita para garantir que TODAS as sub-rotas de /vendas,
+                // incluindo /vendas/relatorio/*, sejam permitidas para usuários autenticados.
                 .requestMatchers("/vendas/**").authenticated()
 
-                // Exige autenticação para todas as outras requisições
+                // Protege todo o resto
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
