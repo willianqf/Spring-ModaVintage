@@ -1,11 +1,11 @@
 package br.com.api.modavintage.Model;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.DecimalMin; // 
-import jakarta.validation.constraints.Min; //
-import jakarta.validation.constraints.NotBlank; // 
-import jakarta.validation.constraints.NotNull; // 
-import jakarta.validation.constraints.Size; // 
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -31,7 +31,7 @@ public class Produto {
 
     @NotNull(message = "O preço de custo é obrigatório.")
     @DecimalMin(value = "0.01", message = "O preço de custo deve ser maior que zero.")
-    @Column(nullable = false) // Garante a consistência no banco também
+    @Column(nullable = false)
     private Double precoCusto;
 
     @NotNull(message = "O preço de venda é obrigatório.")
@@ -44,6 +44,10 @@ public class Produto {
 
     private String tamanho;
     private String categoria;
+
+    // NOVO CAMPO ADICIONADO
+    @Column(nullable = true) // Permite que o campo seja nulo
+    private String imagemUri;
 
     @Temporal(TemporalType.TIMESTAMP)
     private Date dataCadastro;
