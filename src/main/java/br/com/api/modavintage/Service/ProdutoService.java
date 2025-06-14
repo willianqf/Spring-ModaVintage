@@ -88,6 +88,11 @@ public class ProdutoService {
         if (StringUtils.hasText(produtoDetalhes.getCategoria())) {
             produtoExistente.setCategoria(produtoDetalhes.getCategoria());
         }
+        if(StringUtils.hasText(produtoDetalhes.getImagemUri()))
+        {
+            produtoExistente.setImagemUri(produtoDetalhes.getImagemUri());
+        }
+
         // O campo 'ativo' não é modificado aqui. Deve ser feito por um método específico se necessário.
         return produtoRepository.save(produtoExistente);
     }

@@ -22,7 +22,7 @@ public class JwtUtil {
     @Value("${jwt.secret:DefaultSecretKeyQueSejaBemLongaParaSerSeguraPeloMenos256Bits}") // Não colocar em produção
     private String secretString;
 
-    @Value("${jwt.expiration.ms:3600000}") // 1 hora por padrão
+    @Value("${jwt.expiration.ms:31536000000}") // 1 hora por padrão
     private long jwtExpirationInMs;
 
     private Key secretKey;
