@@ -31,10 +31,9 @@ public interface ProdutoRepository extends JpaRepository<Produto, Long> {
     // Para verificar se um produto ativo existe pelo ID
     boolean existsByIdAndAtivoTrue(Long id);
 
-    @Query("SELECT YEAR(p.dataCadastro) AS ano, MONTH(p.dataCadastro) AS mes, SUM(p.precoCusto * p.estoque) AS valorEntrada " +
-           "FROM Produto p " +
-           "WHERE p.dataCadastro IS NOT NULL AND p.precoCusto IS NOT NULL " + // Garante que precoCusto não seja nulo no cálculo
-           "GROUP BY YEAR(p.dataCadastro), MONTH(p.dataCadastro) " +
-           "ORDER BY ano ASC, mes ASC")
+    @Query(value = "SELECT EXTRACT(YEAR FROM p.data_cadastro) as ano, EXTRACT(MONTH FROM p.data_cadastro) as mes, SUM(p.preco_custo * p.estoque) as valor " +
+                   "FROM produtos p " +
+                   "GROUP BY EXTRACT(YEAR FROM p.data_cadastro), EXTRACT(MONTH FROM p.data_cadastro) " +
+                   "ORDER BY ano DESC, mes DESC", nativeQuery = true)
     List<Object[]> findValorEntradaEstoquePorMesRaw();
 }

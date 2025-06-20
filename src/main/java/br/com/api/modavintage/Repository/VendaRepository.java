@@ -20,25 +20,18 @@ public interface VendaRepository extends JpaRepository<Venda, Long> {
     Page<Venda> findByDataVendaBetween(LocalDateTime dataInicio, LocalDateTime dataFim, Pageable pageable);
 
     // Relatório de total de vendas por mês (já estava correto)
-    @Query("SELECT FUNCTION('YEAR', v.dataVenda), FUNCTION('MONTH', v.dataVenda), SUM(v.totalVenda) " +
+    @Query("SELECT EXTRACT(YEAR FROM v.dataVenda) as ano, EXTRACT(MONTH FROM v.dataVenda) as mes, SUM(v.totalVenda) as total " +
            "FROM Venda v " +
-           "GROUP BY FUNCTION('YEAR', v.dataVenda), FUNCTION('MONTH', v.dataVenda) " +
-           "ORDER BY FUNCTION('YEAR', v.dataVenda) DESC, FUNCTION('MONTH', v.dataVenda) DESC")
+           "GROUP BY EXTRACT(YEAR FROM v.dataVenda), EXTRACT(MONTH FROM v.dataVenda) " +
+           "ORDER BY ano DESC, mes DESC")
     List<Object[]> findTotalVendasPorMes();
 
-    /**
-     * ===== QUERY CORRIGIDA =====
-     * A cláusula GROUP BY foi alterada para usar as expressões de função completas
-     * em vez de aliases. Isso garante a compatibilidade com o banco de dados H2.
-     */
-    @Query("SELECT FUNCTION('YEAR', v.dataVenda) as ano, " +
-           "       FUNCTION('MONTH', v.dataVenda) as mes, " +
-           "       SUM(iv.precoUnitarioSnapshot * iv.quantidade) as receita, " +
-           "       SUM(p.precoCusto * iv.quantidade) as cmv " +
-           "FROM Venda v " +
-           "JOIN v.itens iv " +
-           "JOIN iv.produto p " +
-           "GROUP BY FUNCTION('YEAR', v.dataVenda), FUNCTION('MONTH', v.dataVenda) " +
+    // CORREÇÃO: Trocado YEAR() e MONTH() por EXTRACT() para compatibilidade com PostgreSQL
+    @Query("SELECT EXTRACT(YEAR FROM v.dataVenda) as ano, EXTRACT(MONTH FROM v.dataVenda) as mes, " +
+           "SUM(iv.precoUnitarioSnapshot * iv.quantidade) as receita, " +
+           "SUM(p.precoCusto * iv.quantidade) as cmv " +
+           "FROM Venda v JOIN v.itens iv JOIN iv.produto p " +
+           "GROUP BY EXTRACT(YEAR FROM v.dataVenda), EXTRACT(MONTH FROM v.dataVenda) " +
            "ORDER BY ano DESC, mes DESC")
     List<Object[]> findReceitaECmvPorMes();
 }
