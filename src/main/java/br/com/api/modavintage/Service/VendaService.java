@@ -154,38 +154,36 @@ public class VendaService {
     }
 
     @Transactional(readOnly = true)
-    public List<VendasPorMesDTO> getRelatorioVendasMensal() {
-        List<Object[]> resultados = vendaRepository.findTotalVendasPorMes(); 
-        if (resultados == null) {
+    public List<VendasPorMesDTO> getRelatorioVendasMensal(){
+        List<Object[]> resultados = vendaRepository.findTotalVendasPorMes();
+        if(resultados == null){
             return new ArrayList<>();
         }
-        return resultados.stream()
-                .map(record -> {
-                    Integer ano = (Integer) record[0];
-                    Integer mes = (Integer) record[1];
-                    Double total = (record[2] == null) ? 0.0 : ((Number) record[2]).doubleValue(); 
-                    String mesAno = String.format("%d-%02d", ano, mes);
-                    return new VendasPorMesDTO(mesAno, total);
-                })
-                .collect(Collectors.toList());
+        return resultados.stream().map(record -> {
+            // CORREÇÃO: Convertendo de forma segura de Number para Integer
+            Integer ano = (record[0] != null) ? ((Number) record[0]).intValue() : 0;
+            Integer mes = (record[1] != null) ? ((Number) record[1]).intValue() : 0;
+            Double total = (record[2] != null) ? ((Number) record[2]).doubleValue() : 0.0;
+            String mesAno = String.format("%d-%02d", ano, mes);
+            return new VendasPorMesDTO(mesAno, total);
+        }).collect(Collectors.toList());
     }
 
-    @Transactional(readOnly = true)
-    public List<RelatorioLucratividadeMensalDTO> getRelatorioLucratividadeMensal() {
-        List<Object[]> resultados = vendaRepository.findReceitaECmvPorMes();
-        if (resultados == null) {
-            return new ArrayList<>();
+        @Transactional(readOnly = true)
+        public List<RelatorioLucratividadeMensalDTO> getRelatorioLucratividadeMensal(){
+            List<Object[]> resultados = vendaRepository.findReceitaECmvPorMes();
+            if(resultados == null){
+                return new ArrayList<>();
+            }
+            return resultados.stream().map(record -> {
+                // CORREÇÃO: Convertendo de forma segura de Number para Integer
+                Integer ano = (record[0] != null) ? ((Number) record[0]).intValue() : 0;
+                Integer mes = (record[1] != null) ? ((Number) record[1]).intValue() : 0;
+                Double receita = (record[2] != null) ? ((Number) record[2]).doubleValue() : 0.0;
+                Double cmv = (record[3] != null) ? ((Number) record[3]).doubleValue() : 0.0;
+                Double lucro = receita - cmv;
+                String mesAno = String.format("%d-%02d", ano, mes);
+                return new RelatorioLucratividadeMensalDTO(mesAno, receita, cmv, lucro);
+            }).collect(Collectors.toList());
         }
-        return resultados.stream()
-                .map(record -> {
-                    Integer ano = (Integer) record[0];
-                    Integer mes = (Integer) record[1];
-                    Double receita = (record[2] == null) ? 0.0 : ((Number) record[2]).doubleValue();
-                    Double cmv = (record[3] == null) ? 0.0 : ((Number) record[3]).doubleValue();
-                    Double lucroBruto = receita - cmv;
-                    String periodo = String.format("%d-%02d", ano, mes);
-                    return new RelatorioLucratividadeMensalDTO(periodo, receita, cmv, lucroBruto);
-                })
-                .collect(Collectors.toList());
-    }
 }

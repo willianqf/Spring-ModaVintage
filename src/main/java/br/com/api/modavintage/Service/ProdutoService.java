@@ -112,20 +112,21 @@ public class ProdutoService {
         produtoRepository.save(produto);
     }
 
-    @Transactional(readOnly = true)
-    public List<RelatorioMensalValorDTO> getRelatorioValorEntradaEstoqueMensal() {
-        List<Object[]> resultados = produtoRepository.findValorEntradaEstoquePorMesRaw();
-        if (resultados == null) {
-            return new ArrayList<>();
+        @Transactional(readOnly = true)
+        public List<RelatorioMensalValorDTO> getRelatorioValorEntradaEstoqueMensal() {
+            List<Object[]> resultados = produtoRepository.findValorEntradaEstoquePorMesRaw();
+            if (resultados == null) {
+                return new ArrayList<>();
+            }
+            return resultados.stream()
+                    .map(record -> {
+                        // CORREÇÃO: Convertendo de forma segura de Number para Integer
+                        Integer ano = (record[0] != null) ? ((Number) record[0]).intValue() : 0;
+                        Integer mes = (record[1] != null) ? ((Number) record[1]).intValue() : 0;
+                        Double valor = (record[2] == null) ? 0.0 : ((Number) record[2]).doubleValue();
+                        String mesAno = String.format("%d-%02d", ano, mes);
+                        return new RelatorioMensalValorDTO(mesAno, valor);
+                    })
+                    .collect(Collectors.toList());
         }
-        return resultados.stream()
-                .map(record -> {
-                    Integer ano = (Integer) record[0];
-                    Integer mes = (Integer) record[1];
-                    Double valor = (record[2] == null) ? 0.0 : ((Number) record[2]).doubleValue();
-                    String mesAno = String.format("%d-%02d", ano, mes);
-                    return new RelatorioMensalValorDTO(mesAno, valor);
-                })
-                .collect(Collectors.toList());
-    }
 }
