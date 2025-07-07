@@ -1,33 +1,27 @@
-# Estágio 1: Build da Aplicação com Maven
-# Usamos uma imagem que já tem o Maven e o JDK 17 instalados.
-FROM maven:3.8-eclipse-temurin-17 AS build
 
-# Define o diretório de trabalho dentro do container
+FROM maven:3.9-eclipse-temurin-17 AS build
+
+# Define o diretório de trabalho onde os comandos serão executados dentro do "container".
 WORKDIR /app
 
-# Copia o arquivo pom.xml para baixar as dependências primeiro (cache do Docker)
-COPY pom.xml .
-RUN mvn dependency:go-offline
+# Copia todo o seu projeto para dentro do container.
+COPY . .
 
-# Copia todo o código fonte do projeto
-COPY src ./src
-
-# Executa o comando para construir o projeto e gerar o .jar, pulando os testes
+# Executa o comando do Maven para compilar  projeto e gerar o arquivo .jar executável.
+# A opção -DskipTests pula a execução dos testes para acelerar o processo de deploy.
 RUN mvn clean package -DskipTests
 
 
-# Estágio 2: Execução da Aplicação
-# Usamos uma imagem leve, que só tem o necessário para rodar Java (JRE)
-FROM eclipse-temurin:17-jre-jammy
+FROM eclipse-temurin:17-jre-focal
 
-# Define o diretório de trabalho
+# Define o diretório de trabalho.
 WORKDIR /app
 
-# Copia o arquivo .jar que foi gerado no estágio de build
-COPY --from=build /app/target/modavintage-0.0.1-SNAPSHOT.jar app.jar
+# Copia o arquivo .jar que foi gerado no estágio anterior para a imagem final.
+COPY --from=build /app/target/*.jar app.jar
 
-# Expõe a porta que a aplicação Spring usa (padrão 8080)
+# Informa que a aplicação irá usar a porta 8080.
 EXPOSE 8080
 
-# Comando para iniciar a aplicação quando o container for executado
+# Define o comando que será executado para iniciar sua aplicação.
 ENTRYPOINT ["java", "-jar", "app.jar"]
